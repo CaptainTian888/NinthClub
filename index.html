@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NINTHCLUB 九社 — The Ninth Layer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;600&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
+<style>
+
+/* ════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════════════════════════ */
+:root {
+  --void:    #030305;
+  --deep:    #07070f;
+  --surface: #0c0c17;
+  --ember:   #c8a96e;
+  --ember-lo:#a07840;
+  --ash:     #2e2e3e;
+  --mist:    #7070a0;
+  --light:   #e0dbd2;
+  --white:   #f0ebe2;
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--void);
+  color: var(--light);
+  font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* film-grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 3000; opacity: .38;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23g)' opacity='.055'/%3E%3C/svg%3E");
+}
+
+/* ════════════════════════════════════════════════════════════
+   CUSTOM CURSOR
+════════════════════════════════════════════════════════════ */
+#cur {
+  position: fixed; width: 7px; height: 7px;
+  background: var(--ember); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  transition: width .18s, height .18s;
+}
+#cur-r {
+  position: fixed; width: 34px; height: 34px;
+  border: 1px solid rgba(200,169,110,.32); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width .14s, height .14s;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PAGE FADE-IN
+════════════════════════════════════════════════════════════ */
+#main { opacity: 0; transition: opacity .9s ease; }
+#main.visible { opacity: 1; }
+
+/* ════════════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  padding: 22px 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(200,169,110,.05);
+  background: linear-gradient(to bottom, rgba(3,3,5,.97) 0%, transparent 100%);
+  backdrop-filter: blur(4px);
+  transition: border-color .3s;
+}
+
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { height: 30px; width: auto; filter: drop-shadow(0 0 10px rgba(200,169,110,.25)); }
+.nav-logo-text { display: flex; flex-direction: column; line-height: 1; }
+.nav-brand-en { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: .28em; color: var(--ember); font-weight: 600; }
+.nav-brand-zh { font-family: 'Noto Serif SC', serif; font-size: 9px; letter-spacing: .45em; color: var(--mist); margin-top: 4px; }
+
+.nav-links { display: flex; gap: 40px; list-style: none; }
+.nav-links a {
+  font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .22em;
+  color: var(--mist); text-decoration: none; text-transform: uppercase;
+  transition: color .3s;
+}
+.nav-links a:hover { color: var(--ember); }
+
+/* right cluster — lang toggle + CTA, always side-by-side, no overlap */
+.nav-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+#lang-btn {
+  font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: .22em;
+  color: var(--mist); border: 1px solid rgba(200,169,110,.22);
+  width: 52px; padding: 9px 0; text-align: center;
+  background: transparent; cursor: none; text-transform: uppercase;
+  transition: color .3s, border-color .3s;
+  white-space: nowrap; flex-shrink: 0;
+}
+#lang-btn:hover { color: var(--ember); border-color: rgba(200,169,110,.55); }
+.nav-cta {
+  font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .22em;
+  color: var(--ember); border: 1px solid rgba(200,169,110,.32);
+  padding: 9px 22px; text-decoration: none; text-transform: uppercase;
+  white-space: nowrap; flex-shrink: 0;
+  transition: background .3s, border-color .3s;
+}
+.nav-cta:hover { background: rgba(200,169,110,.07); border-color: var(--ember); }
+
+/* ════════════════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  padding: 130px 60px 90px;
+}
+
+/* ambient glow background */
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 60%, rgba(200,169,110,.057) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 45% at 16% 18%, rgba(200,169,110,.026) 0%, transparent 62%),
+    radial-gradient(ellipse 40% 30% at 84% 84%, rgba(75,55,175,.04) 0%, transparent 62%);
+}
+
+/* floating micro-particles */
+.hero-particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.particle {
+  position: absolute; width: 1px; height: 1px;
+  background: var(--ember); border-radius: 50%;
+  animation: pFloat linear infinite; opacity: 0;
+}
+@keyframes pFloat {
+  0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10%  { opacity: .55; }
+  90%  { opacity: .22; }
+  100% { transform: translateY(-20px) translateX(var(--drift)); opacity: 0; }
+}
+
+/* orbit rings */
+.hero-orbit { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.h-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(200,169,110,.07);
+  transform: translate(-50%, -50%);
+  animation: orbitSpin linear infinite;
+}
+.h-ring:nth-child(1) { width: 560px;  height: 560px;  animation-duration: 65s; }
+.h-ring:nth-child(2) { width: 860px;  height: 860px;  animation-duration: 95s;  animation-direction: reverse; border-color: rgba(200,169,110,.04); }
+.h-ring:nth-child(3) { width: 1160px; height: 1160px; animation-duration: 130s; border-color: rgba(200,169,110,.024); }
+.h-dot {
+  position: absolute; width: 3px; height: 3px;
+  background: var(--ember); border-radius: 50%;
+  top: -1.5px; left: 50%; transform: translateX(-50%);
+  box-shadow: 0 0 7px var(--ember);
+}
+@keyframes orbitSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* hero copy */
+.hero-content { position: relative; text-align: center; z-index: 2; max-width: 900px; }
+
+.hero-eyebrow {
+  font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .55em;
+  color: var(--ember); text-transform: uppercase; margin-bottom: 54px;
+  opacity: 0; animation: fadeUp 1s ease .2s forwards;
+}
+.hero-title {
+  font-family: 'Cinzel', serif; font-size: clamp(52px, 8vw, 102px);
+  font-weight: 600; letter-spacing: .18em; color: var(--white);
+  line-height: 1; margin-bottom: 14px;
+  text-shadow: 0 0 60px rgba(200,169,110,.14);
+  opacity: 0; animation: fadeUp 1s ease .5s forwards;
+}
+.hero-sub {
+  font-family: 'Noto Serif SC', serif; font-size: clamp(13px, 1.8vw, 18px);
+  font-weight: 300; letter-spacing: 1.4em; color: var(--mist); margin-bottom: 60px;
+  opacity: 0; animation: fadeUp 1s ease .7s forwards;
+}
+.hero-divider {
+  width: 1px; height: 64px;
+  background: linear-gradient(to bottom, transparent, var(--ember), transparent);
+  margin: 0 auto 60px;
+  opacity: 0; animation: fadeUp 1s ease .9s forwards;
+}
+.hero-desc {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: clamp(16px, 2.2vw, 22px); color: var(--mist);
+  line-height: 2.1; max-width: 580px; margin: 0 auto 76px;
+  opacity: 0; animation: fadeUp 1s ease 1.1s forwards;
+}
+.hero-actions {
+  display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+  opacity: 0; animation: fadeUp 1s ease 1.3s forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* scroll hint */
+.scroll-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0; animation: fadeUp 1s ease 1.8s forwards;
+}
+.scroll-hint span {
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .4em;
+  color: var(--ash); text-transform: uppercase;
+}
+.scroll-line {
+  width: 1px; height: 42px;
+  background: linear-gradient(to bottom, var(--ember), transparent);
+  animation: sPulse 2s ease infinite;
+}
+@keyframes sPulse {
+  0%, 100% { opacity: .3; transform: scaleY(1); }
+  50%       { opacity: 1;  transform: scaleY(1.14); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════════════════════════ */
+.btn-primary {
+  font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: .25em;
+  color: var(--void); background: var(--ember);
+  padding: 16px 42px; text-decoration: none; text-transform: uppercase;
+  display: inline-block; position: relative; overflow: hidden;
+  transition: all .3s;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(255,255,255,.12);
+  transform: translateX(-100%); transition: transform .3s;
+}
+.btn-primary:hover::after { transform: translateX(0); }
+
+.btn-ghost {
+  font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: .25em;
+  color: var(--ember); border: 1px solid rgba(200,169,110,.32);
+  padding: 16px 42px; text-decoration: none; text-transform: uppercase;
+  display: inline-block; transition: all .3s;
+}
+.btn-ghost:hover { background: rgba(200,169,110,.07); border-color: var(--ember); }
+
+/* ════════════════════════════════════════════════════════════
+   SECTION SHARED
+════════════════════════════════════════════════════════════ */
+section { padding: 130px 60px; }
+.section-label {
+  font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: .5em;
+  color: var(--ember); text-transform: uppercase; margin-bottom: 22px;
+}
+.section-title {
+  font-family: 'Cinzel', serif; font-size: clamp(26px, 3.8vw, 46px);
+  font-weight: 400; letter-spacing: .1em; color: var(--white); line-height: 1.3;
+}
+.section-sub {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: clamp(12px, 1.3vw, 15px); letter-spacing: .2em;
+  color: var(--mist); margin-top: 10px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   INTRO
+════════════════════════════════════════════════════════════ */
+.intro {
+  background: var(--deep);
+  border-top:    1px solid rgba(200,169,110,.07);
+  border-bottom: 1px solid rgba(200,169,110,.07);
+  position: relative; overflow: hidden;
+}
+.intro::before {
+  content: 'IX'; position: absolute; right: -24px; top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Cinzel', serif; font-size: 300px;
+  color: rgba(200,169,110,.022); line-height: 1; pointer-events: none;
+}
+.intro-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center;
+}
+.intro-text p {
+  font-family: 'Cormorant Garamond', serif; font-size: 18px;
+  line-height: 2.1; color: var(--mist); margin-top: 34px;
+}
+.intro-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.stat-card {
+  background: var(--surface); padding: 38px 30px;
+  border: 1px solid rgba(200,169,110,.07);
+  position: relative; overflow: hidden;
+  transition: border-color .3s, transform .3s;
+}
+.stat-card:hover { border-color: rgba(200,169,110,.22); transform: translateY(-3px); }
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, var(--ember), transparent);
+  opacity: 0; transition: opacity .3s;
+}
+.stat-card:hover::before { opacity: 1; }
+.stat-num  { font-family: 'Cinzel', serif; font-size: 34px; color: var(--ember); font-weight: 600; display: block; }
+.stat-label{ font-family: 'Noto Serif SC', serif; font-size: 10px; color: var(--mist); letter-spacing: .3em; display: block; margin-top: 8px; }
+
+/* ════════════════════════════════════════════════════════════
+   PILLARS
+════════════════════════════════════════════════════════════ */
+.pillars { background: var(--void); }
+.pillars-inner { max-width: 1200px; margin: 0 auto; }
+.pillars-header { text-align: center; margin-bottom: 80px; }
+.pillar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+
+.pillar {
+  background: var(--surface); padding: 56px 42px;
+  border: 1px solid rgba(200,169,110,.06);
+  position: relative; overflow: hidden;
+  transition: all .4s; cursor: default;
+}
+.pillar::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(200,169,110,.04), transparent);
+  opacity: 0; transition: opacity .4s;
+}
+.pillar:hover { background: var(--deep); border-color: rgba(200,169,110,.18); transform: translateY(-5px); }
+.pillar:hover::after { opacity: 1; }
+.pillar-num  { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .3em; color: rgba(200,169,110,.25); margin-bottom: 36px; display: block; }
+.pillar-bar  { width: 34px; height: 1px; background: var(--ember); margin-bottom: 28px; transition: width .4s; }
+.pillar:hover .pillar-bar { width: 54px; }
+.pillar-en   { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: .1em; color: var(--white); margin-bottom: 7px; }
+.pillar-zh   { font-family: 'Noto Serif SC', serif; font-size: 10px; letter-spacing: .42em; color: var(--ember); margin-bottom: 24px; }
+.pillar p    { font-family: 'Cormorant Garamond', serif; font-size: 15px; line-height: 2; color: var(--mist); }
+
+/* ════════════════════════════════════════════════════════════
+   MEMBERSHIP
+════════════════════════════════════════════════════════════ */
+.membership { background: var(--deep); border-top: 1px solid rgba(200,169,110,.07); }
+.membership-inner { max-width: 1020px; margin: 0 auto; }
+.membership-header { margin-bottom: 72px; }
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+
+.tier {
+  background: var(--surface); padding: 52px 36px;
+  border: 1px solid rgba(200,169,110,.07);
+  position: relative; transition: all .4s;
+}
+.tier:hover { border-color: rgba(200,169,110,.2); transform: translateY(-4px); }
+.tier.featured {
+  background: linear-gradient(150deg, rgba(200,169,110,.09), rgba(5,5,7,.9));
+  border-color: rgba(200,169,110,.22);
+}
+.tier.featured::before {
+  content: 'ELITE'; position: absolute; top: 18px; right: 18px;
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .3em;
+  color: var(--ember); border: 1px solid rgba(200,169,110,.35); padding: 4px 12px;
+}
+.tier-level   { font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .5em; color: var(--mist); text-transform: uppercase; margin-bottom: 14px; }
+.tier-name    { font-family: 'Cinzel', serif; font-size: 19px; color: var(--white); letter-spacing: .1em; margin-bottom: 6px; }
+.tier-name-zh { font-family: 'Noto Serif SC', serif; font-size: 10px; letter-spacing: .42em; color: var(--ember); margin-bottom: 28px; }
+.tier-features { list-style: none; margin-bottom: 42px; }
+.tier-features li {
+  font-family: 'Cormorant Garamond', serif; font-size: 14px; color: var(--mist);
+  padding: 9px 0; border-bottom: 1px solid rgba(200,169,110,.06);
+  display: flex; align-items: center; gap: 12px;
+}
+.tier-features li::before { content: ''; display: block; width: 14px; height: 1px; background: var(--ember); flex-shrink: 0; }
+.tier-cta {
+  display: block; text-align: center;
+  font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .2em;
+  color: var(--ember); border: 1px solid rgba(200,169,110,.28);
+  padding: 13px; text-decoration: none; text-transform: uppercase; transition: all .3s;
+}
+.tier-cta:hover { background: rgba(200,169,110,.07); border-color: var(--ember); }
+.tier.featured .tier-cta { background: var(--ember); color: var(--void); border-color: var(--ember); }
+.tier.featured .tier-cta:hover { background: #d4b47a; }
+
+/* ════════════════════════════════════════════════════════════
+   MANIFESTO
+════════════════════════════════════════════════════════════ */
+.manifesto { background: var(--void); text-align: center; position: relative; overflow: hidden; }
+.manifesto::before {
+  content: '九'; position: absolute;
+  font-family: 'Noto Serif SC', serif; font-size: 540px;
+  color: rgba(200,169,110,.018);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  pointer-events: none; line-height: 1;
+}
+.manifesto-inner { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
+.manifesto blockquote {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: clamp(18px, 2.8vw, 30px); color: var(--light);
+  line-height: 1.95; margin: 52px 0;
+}
+.manifesto cite { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: .45em; color: var(--ember); font-style: normal; }
+
+/* ════════════════════════════════════════════════════════════
+   APPLY
+════════════════════════════════════════════════════════════ */
+.apply { background: var(--deep); border-top: 1px solid rgba(200,169,110,.07); text-align: center; }
+.apply-inner { max-width: 580px; margin: 0 auto; }
+.apply-inner p {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 18px; color: var(--mist); line-height: 2.1;
+  margin: 34px 0 58px;
+}
+.apply-note {
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .42em;
+  color: var(--ash); text-transform: uppercase; margin-top: 30px;
+}
+
+/* ════════════════════════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════════════════════════ */
+footer { background: var(--void); border-top: 1px solid rgba(200,169,110,.07); padding: 54px 60px; }
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 28px;
+}
+.footer-logo { display: flex; align-items: center; gap: 12px; }
+.footer-logo img { height: 24px; filter: brightness(.65); }
+.footer-info { font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .3em; color: var(--ash); text-align: center; line-height: 2.2; }
+.footer-links { display: flex; gap: 28px; list-style: none; }
+.footer-links a {
+  font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: .3em;
+  color: var(--ash); text-decoration: none; text-transform: uppercase; transition: color .3s;
+}
+.footer-links a:hover { color: var(--ember); }
+
+/* ════════════════════════════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════════════════════════════ */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .85s ease, transform .85s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════════════════════ */
+@media (max-width: 960px) {
+  nav { padding: 18px 22px; }
+  .nav-links { display: none; }
+  section { padding: 80px 22px; }
+  .intro-inner { grid-template-columns: 1fr; gap: 48px; }
+  .pillar-grid, .tiers { grid-template-columns: 1fr; }
+  footer { padding: 38px 22px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .h-ring:nth-child(1) { width: 280px; height: 280px; }
+  .h-ring:nth-child(2) { width: 460px; height: 460px; }
+  .h-ring:nth-child(3) { width: 640px; height: 640px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- custom cursor -->
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<div id="main">
+
+<!-- ════════════════════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <img src="https://imagehub.tianzeqi.dev/file/favicon/1774937760167_ninthclub1.png" alt="NINTHCLUB">
+    <div class="nav-logo-text">
+      <span class="nav-brand-en">NINTHCLUB</span>
+      <span class="nav-brand-zh">九 社</span>
+    </div>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#pillars"    data-zh="圈子" data-en="Circles">圈子</a></li>
+    <li><a href="#membership" data-zh="会籍" data-en="Membership">会籍</a></li>
+    <li><a href="#manifesto"  data-zh="宣言" data-en="Manifesto">宣言</a></li>
+    <li><a href="#apply"      data-zh="申请" data-en="Apply">申请</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <button id="lang-btn" onclick="toggleLang()">EN</button>
+    <a href="#apply" class="nav-cta" id="nav-cta" data-zh="申请入会" data-en="Apply Now">申请入会</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-orbit">
+    <div class="h-ring"><div class="h-dot"></div></div>
+    <div class="h-ring"><div class="h-dot"></div></div>
+    <div class="h-ring"><div class="h-dot"></div></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"
+         data-zh="第九层 · 精英圈子 · By Invitation Only"
+         data-en="The Ninth Layer · Elite Circle · By Invitation Only">
+      第九层 · 精英圈子 · By Invitation Only
+    </div>
+    <div class="hero-title">NINTHCLUB</div>
+    <div class="hero-sub" data-zh="九 · 社" data-en="Nine · Circle">九 · 社</div>
+    <div class="hero-divider"></div>
+    <p class="hero-desc"
+       data-zh="一个神秘的全球线上精英圈子，汇聚顶尖知识、资源与人脉。<br>第九层，属于看得见的人。"
+       data-en="A mysterious global elite circle — curating knowledge, resources &amp; connections.<br>The Ninth Layer belongs to those who can see it.">
+      一个神秘的全球线上精英圈子，汇聚顶尖知识、资源与人脉。<br>第九层，属于看得见的人。
+    </p>
+    <div class="hero-actions">
+      <a href="#apply"   class="btn-primary" data-zh="申请入会" data-en="Apply Now">申请入会</a>
+      <a href="#pillars" class="btn-ghost"   data-zh="探索九社" data-en="Explore">探索九社</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     INTRO
+════════════════════════════════════════════════════════════ -->
+<section class="intro">
+  <div class="intro-inner">
+    <div class="intro-text reveal">
+      <div class="section-label" data-zh="关于九社" data-en="About">关于九社</div>
+      <h2 class="section-title"
+          data-zh="看不见的圈子<br>才是真正的圈子"
+          data-en="The Circle You Cannot See<br>Is the Only One That Matters">
+        看不见的圈子<br>才是真正的圈子
+      </h2>
+      <div class="section-sub">The Ninth Layer</div>
+      <p data-zh="NINTHCLUB 九社，是一个极度精选的线上私密社群。我们相信，真正有价值的连接从不发生在公开的舞台上，而发生在第九层——那个只有少数人知晓的维度。"
+         data-en="NINTHCLUB is a meticulously curated private online community. We believe the most valuable connections are never made in public — they happen in the Ninth Layer, a dimension known only to a chosen few.">
+        NINTHCLUB 九社，是一个极度精选的线上私密社群。我们相信，真正有价值的连接从不发生在公开的舞台上，而发生在第九层——那个只有少数人知晓的维度。
+      </p>
+    </div>
+    <div class="intro-stats reveal">
+      <div class="stat-card">
+        <span class="stat-num">9</span>
+        <span class="stat-label" data-zh="核心圈层" data-en="Core Layers">核心圈层</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">∞</span>
+        <span class="stat-label" data-zh="全球资源" data-en="Global Resources">全球资源</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">AI</span>
+        <span class="stat-label" data-zh="智能驱动" data-en="AI Powered">智能驱动</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">私</span>
+        <span class="stat-label" data-zh="邀请制入会" data-en="Invite Only">邀请制入会</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     PILLARS — SIX DIMENSIONS
+════════════════════════════════════════════════════════════ -->
+<section class="pillars" id="pillars">
+  <div class="pillars-inner">
+    <div class="pillars-header reveal">
+      <div class="section-label" data-zh="六大核心" data-en="Six Dimensions">六大核心</div>
+      <h2 class="section-title" data-zh="九社的维度" data-en="The Dimensions of NINTHCLUB">九社的维度</h2>
+      <div class="section-sub" data-zh="Six Dimensions of NINTHCLUB" data-en="Six Dimensions of NINTHCLUB">Six Dimensions of NINTHCLUB</div>
+    </div>
+    <div class="pillar-grid">
+
+      <div class="pillar reveal">
+        <span class="pillar-num">01</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">Global Resources</div>
+        <div class="pillar-zh" data-zh="全球资源" data-en="Global Resources">全球资源</div>
+        <p data-zh="跨越地域的稀缺资源整合，链接全球精英网络，让每一个机会触手可及。"
+           data-en="Rare resources curated across borders — connecting global elite networks so every opportunity is within reach.">
+          跨越地域的稀缺资源整合，链接全球精英网络，让每一个机会触手可及。
+        </p>
+      </div>
+
+      <div class="pillar reveal">
+        <span class="pillar-num">02</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">Knowledge System</div>
+        <div class="pillar-zh" data-zh="顶尖知识" data-en="Knowledge">顶尖知识</div>
+        <p data-zh="独家策展的高价值内容库，涵盖商业洞察、前沿趋势与深度研究报告。"
+           data-en="Exclusively curated high-value content — business insights, frontier trends and deep research reports.">
+          独家策展的高价值内容库，涵盖商业洞察、前沿趋势与深度研究报告。
+        </p>
+      </div>
+
+      <div class="pillar reveal">
+        <span class="pillar-num">03</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">Learning Academy</div>
+        <div class="pillar-zh" data-zh="学习成长" data-en="Learning">学习成长</div>
+        <p data-zh="系统化学习路径，从职业进阶到思维升级，与顶尖导师共同成长。"
+           data-en="Structured learning paths — from career advancement to mind elevation, growing alongside world-class mentors.">
+          系统化学习路径，从职业进阶到思维升级，与顶尖导师共同成长。
+        </p>
+      </div>
+
+      <div class="pillar reveal">
+        <span class="pillar-num">04</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">MBA Business School</div>
+        <div class="pillar-zh" data-zh="MBA 商学" data-en="MBA Business">MBA 商学</div>
+        <p data-zh="商学院级别的实战课程与案例，为创业者与高管打造的精英商业教育体系。"
+           data-en="Business school-grade practical courses and cases — elite commercial education built for founders and executives.">
+          商学院级别的实战课程与案例，为创业者与高管打造的精英商业教育体系。
+        </p>
+      </div>
+
+      <div class="pillar reveal">
+        <span class="pillar-num">05</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">Private Board</div>
+        <div class="pillar-zh" data-zh="私董会" data-en="Private Board">私董会</div>
+        <p data-zh="小圈子、深链接。私董会模式，与同频的决策者共同解决真实商业挑战。"
+           data-en="Small circles, deep connections. The Private Board model — solving real business challenges alongside like-minded decision makers.">
+          小圈子、深链接。私董会模式，与同频的决策者共同解决真实商业挑战。
+        </p>
+      </div>
+
+      <div class="pillar reveal">
+        <span class="pillar-num">06</span>
+        <div class="pillar-bar"></div>
+        <div class="pillar-en">AI Social Circle</div>
+        <div class="pillar-zh" data-zh="AI 社交圈" data-en="AI Social">AI 社交圈</div>
+        <p data-zh="以 AI 为纽带的新型社交生态，在智能时代构建更高维度的人际连接与协作。"
+           data-en="A new social ecosystem woven by AI — building higher-dimensional connections and collaboration in the age of intelligence.">
+          以 AI 为纽带的新型社交生态，在智能时代构建更高维度的人际连接与协作。
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     MEMBERSHIP TIERS
+════════════════════════════════════════════════════════════ -->
+<section class="membership" id="membership">
+  <div class="membership-inner">
+    <div class="membership-header reveal">
+      <div class="section-label" data-zh="会籍层级" data-en="Membership">会籍层级</div>
+      <h2 class="section-title" data-zh="选择你的层级" data-en="Choose Your Layer">选择你的层级</h2>
+      <div class="section-sub" data-zh="Membership Tiers" data-en="Membership Tiers">Membership Tiers</div>
+    </div>
+    <div class="tiers">
+
+      <div class="tier reveal">
+        <div class="tier-level">Entry</div>
+        <div class="tier-name">ASSOCIATE</div>
+        <div class="tier-name-zh" data-zh="初 · 社员" data-en="初 · Associate">初 · 社员</div>
+        <ul class="tier-features">
+          <li data-zh="知识库基础访问"  data-en="Knowledge Base Access">知识库基础访问</li>
+          <li data-zh="月度精华内容"    data-en="Monthly Curated Content">月度精华内容</li>
+          <li data-zh="社群互动广场"    data-en="Community Forum">社群互动广场</li>
+          <li data-zh="AI 工具包"       data-en="AI Toolkit">AI 工具包</li>
+        </ul>
+        <a href="#apply" class="tier-cta" data-zh="申请加入" data-en="Apply">申请加入</a>
+      </div>
+
+      <div class="tier featured reveal">
+        <div class="tier-level">Core</div>
+        <div class="tier-name">MEMBER</div>
+        <div class="tier-name-zh" data-zh="核 · 社员" data-en="核 · Member">核 · 社员</div>
+        <ul class="tier-features">
+          <li data-zh="全量资源库解锁"  data-en="Full Resource Library">全量资源库解锁</li>
+          <li data-zh="MBA 商学模块"    data-en="MBA Business Module">MBA 商学模块</li>
+          <li data-zh="私董会参与权"    data-en="Private Board Access">私董会参与权</li>
+          <li data-zh="全球导师连接"    data-en="Global Mentor Network">全球导师连接</li>
+          <li data-zh="AI 圈专属频道"   data-en="AI Circle Channel">AI 圈专属频道</li>
+        </ul>
+        <a href="#apply" class="tier-cta" data-zh="申请加入" data-en="Apply">申请加入</a>
+      </div>
+
+      <div class="tier reveal">
+        <div class="tier-level">Inner Circle</div>
+        <div class="tier-name">PARTNER</div>
+        <div class="tier-name-zh" data-zh="合 · 伙人" data-en="合 · Partner">合 · 伙人</div>
+        <ul class="tier-features">
+          <li data-zh="一切核心权益"    data-en="All Core Benefits">一切核心权益</li>
+          <li data-zh="线下私董峰会"    data-en="Offline Private Summit">线下私董峰会</li>
+          <li data-zh="创始人直连"      data-en="Founder Direct Access">创始人直连</li>
+          <li data-zh="共创合作机会"    data-en="Co-Creation Opportunities">共创合作机会</li>
+          <li data-zh="投资圈优先接入"  data-en="Investment Circle Priority">投资圈优先接入</li>
+        </ul>
+        <a href="#apply" class="tier-cta" data-zh="邀请申请" data-en="By Invitation">邀请申请</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     MANIFESTO
+════════════════════════════════════════════════════════════ -->
+<section class="manifesto" id="manifesto">
+  <div class="manifesto-inner reveal">
+    <div class="section-label" data-zh="九社宣言" data-en="Manifesto">九社宣言</div>
+    <blockquote
+      data-zh="&ldquo;世界不属于最聪明的人，<br>而属于那些找到了对的圈子的人。<br>第九层，是你看见的地方，<br>也是你被看见的地方。&rdquo;"
+      data-en="&ldquo;The world does not belong to the most intelligent.<br>It belongs to those who found the right circle.<br>The Ninth Layer is where you see —<br>and where you are finally seen.&rdquo;">
+      &ldquo;世界不属于最聪明的人，<br>而属于那些找到了对的圈子的人。<br>第九层，是你看见的地方，<br>也是你被看见的地方。&rdquo;
+    </blockquote>
+    <cite data-zh="— NINTHCLUB 九社 创始宣言" data-en="— NINTHCLUB Founding Manifesto">— NINTHCLUB 九社 创始宣言</cite>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     APPLY
+════════════════════════════════════════════════════════════ -->
+<section class="apply" id="apply">
+  <div class="apply-inner reveal">
+    <div class="section-label" data-zh="申请入会" data-en="Apply">申请入会</div>
+    <h2 class="section-title" data-zh="准备好了吗" data-en="Are You Ready">准备好了吗</h2>
+    <div class="section-sub" data-zh="Are You Ready for the Ninth Layer" data-en="Are You Ready for the Ninth Layer">Are You Ready for the Ninth Layer</div>
+    <p data-zh="九社实行严格的邀请制与审核制度。<br>我们不追求规模，只追求深度。"
+       data-en="NINTHCLUB operates under strict invitation and review protocols.<br>We do not pursue scale. We pursue depth.">
+      九社实行严格的邀请制与审核制度。<br>我们不追求规模，只追求深度。
+    </p>
+    <a href="mailto:join@ninthclub.com" class="btn-primary" data-zh="提交申请" data-en="Submit Application">提交申请</a>
+    <div class="apply-note"
+         data-zh="所有申请将在 72 小时内由核心委员会审核"
+         data-en="All applications are reviewed by the core committee within 72 hours">
+      所有申请将在 72 小时内由核心委员会审核
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="https://imagehub.tianzeqi.dev/file/favicon/1774937760167_ninthclub1.png" alt="NINTHCLUB">
+      <div class="nav-logo-text">
+        <span class="nav-brand-en" style="font-size:10px">NINTHCLUB</span>
+        <span class="nav-brand-zh" style="font-size:8px">九 社</span>
+      </div>
+    </div>
+    <div class="footer-info">
+      © 2025 NINTHCLUB 九社 · All Rights Reserved<br>
+      <span data-zh="第九层 · 全球精英线上社群" data-en="The Ninth Layer · Global Elite Online Community">
+        第九层 · 全球精英线上社群
+      </span>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#" data-zh="隐私" data-en="Privacy">隐私</a></li>
+      <li><a href="#" data-zh="条款" data-en="Terms">条款</a></li>
+      <li><a href="#" data-zh="联系" data-en="Contact">联系</a></li>
+    </ul>
+  </div>
+</footer>
+
+</div><!-- /#main -->
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   INIT — page visible immediately
+════════════════════════════════════════════════════════════ */
+(function init() {
+  document.getElementById('main').classList.add('visible');
+  spawnParticles();
+  initReveal();
+  initCursor();
+})();
+
+/* ════════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+════════════════════════════════════════════════════════════ */
+let lang = 'zh';
+
+function toggleLang() {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  // button always shows the OTHER language (what you'll switch to next)
+  document.getElementById('lang-btn').textContent = lang === 'zh' ? 'EN' : '中文';
+  // update every element that carries both data-zh and data-en
+  document.querySelectorAll('[data-zh][data-en]').forEach(el => {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   CUSTOM CURSOR
+════════════════════════════════════════════════════════════ */
+function initCursor() {
+  const dot  = document.getElementById('cur');
+  const ring = document.getElementById('cur-r');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top  = my + 'px';
+  });
+
+  (function track() {
+    rx += (mx - rx) * .11;
+    ry += (my - ry) * .11;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(track);
+  })();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      dot.style.width  = '3px';  dot.style.height  = '3px';
+      ring.style.width = '50px'; ring.style.height = '50px';
+    });
+    el.addEventListener('mouseleave', () => {
+      dot.style.width  = '7px';  dot.style.height  = '7px';
+      ring.style.width = '34px'; ring.style.height = '34px';
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   FLOATING PARTICLES
+════════════════════════════════════════════════════════════ */
+function spawnParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 28; i++) {
+    const p   = document.createElement('div');
+    p.className = 'particle';
+    const dur = 14 + Math.random() * 22;
+    p.style.cssText = [
+      `left:${Math.random() * 100}%`,
+      `animation-duration:${dur}s`,
+      `animation-delay:${Math.random() * -dur}s`,
+      `--drift:${(Math.random() - .5) * 220}px`
+    ].join(';');
+    container.appendChild(p);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════════════════════════════ */
+function initReveal() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 90);
+      }
+    });
+  }, { threshold: .1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+/* ════════════════════════════════════════════════════════════
+   NAV BORDER ON SCROLL
+════════════════════════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('nav');
+  if (nav) {
+    nav.style.borderBottomColor = scrollY > 80
+      ? 'rgba(200,169,110,.13)'
+      : 'rgba(200,169,110,.05)';
+  }
+});
+</script>
+
+</body>
+</html>
